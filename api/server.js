@@ -123,16 +123,28 @@ app.post('/api/hospitals/:id/admit', async (req, res) => {
     conn = await pool.getConnection();
     await conn.beginTransaction();
 
-    await conn.query(
-      'UPDATE hospitals SET available_beds = available_beds - 1 WHERE id = ?',
+    // Keep the critical section short: touch the hot row and commit.
+    // Holding the X lock across notifyBedRegistry (~500ms) caps throughput at
+    // ~1/W admits/sec per hospital (OPS-2203).
+    const [result] = await conn.query(
+      'UPDATE hospitals SET available_beds = available_beds - 1 WHERE id = ? AND available_beds > 0',
       [hospitalId]
     );
-
-    // Notify the external regional bed registry of the new count before we
-    // commit (simulated here with a network round-trip latency).
-    await notifyBedRegistry(hospitalId);
+    if (result.affectedRows === 0) {
+      await conn.rollback();
+      conn.release();
+      conn = null;
+      return res.status(409).json({ error: 'NO_BEDS', hospitalId });
+    }
 
     await conn.commit();
+    // Release the pool slot before external I/O — otherwise each admit still
+    // occupies a connection for ~500ms and Little's Law caps λ ≈ pool/0.5.
+    conn.release();
+    conn = null;
+
+    await notifyBedRegistry(hospitalId);
+
     res.json({ status: 'admitted', hospitalId });
   } catch (err) {
     if (conn) {
