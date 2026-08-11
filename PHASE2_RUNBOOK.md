@@ -165,7 +165,7 @@ docker inspect capacity-api --format '{{.RestartCount}}'
 
 ---
 
-## 4. Suggested order tonight
+## 4. Suggested order
 
 1. Baseline  
 2. **OPS-2201** (index — SQL only)  
