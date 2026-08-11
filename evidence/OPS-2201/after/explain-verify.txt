@@ -1,0 +1,3 @@
+mysql: [Warning] Using a password on the command line interface can be insecure.
+EXPLAIN
+-> Index lookup on patients using idx_patients_last_name (last_name='Smith')  (cost=2371 rows=10000) (actual time=0.0423..6.23 rows=10000 loops=1)\n

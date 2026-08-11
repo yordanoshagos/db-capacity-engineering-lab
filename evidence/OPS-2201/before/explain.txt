@@ -1,0 +1,5 @@
+mysql: [Warning] Using a password on the command line interface can be insecure.
+EXPLAIN
+-> Filter: (patients.last_name = 'Smith')  (cost=10294 rows=9837) (actual time=0.0726..45.4 rows=10000 loops=1)\n    -> Table scan on patients  (cost=10294 rows=98373) (actual time=0.065..38.7 rows=100000 loops=1)\n
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression
+patients	0	PRIMARY	1	id	A	98373	NULL	NULL		BTREE			YES	NULL

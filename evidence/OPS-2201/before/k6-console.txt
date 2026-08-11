@@ -1,0 +1,176 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: load-tests/reproduce-OPS-2201.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 200 max VUs, 1m0s max duration (incl. graceful stop):
+              * shift_change_search: 200 looping VUs for 30s (gracefulStop: 30s)
+
+
+running (0m01.0s), 200/200 VUs, 14 complete and 0 interrupted iterations
+shift_change_search   [   3% ] 200 VUs  01.0s/30s
+
+running (0m02.0s), 200/200 VUs, 29 complete and 0 interrupted iterations
+shift_change_search   [   7% ] 200 VUs  02.0s/30s
+
+running (0m03.0s), 200/200 VUs, 43 complete and 0 interrupted iterations
+shift_change_search   [  10% ] 200 VUs  03.0s/30s
+
+running (0m04.0s), 200/200 VUs, 59 complete and 0 interrupted iterations
+shift_change_search   [  13% ] 200 VUs  04.0s/30s
+
+running (0m05.0s), 200/200 VUs, 76 complete and 0 interrupted iterations
+shift_change_search   [  17% ] 200 VUs  05.0s/30s
+
+running (0m06.0s), 200/200 VUs, 94 complete and 0 interrupted iterations
+shift_change_search   [  20% ] 200 VUs  06.0s/30s
+
+running (0m07.0s), 200/200 VUs, 112 complete and 0 interrupted iterations
+shift_change_search   [  23% ] 200 VUs  07.0s/30s
+
+running (0m08.0s), 200/200 VUs, 130 complete and 0 interrupted iterations
+shift_change_search   [  27% ] 200 VUs  08.0s/30s
+
+running (0m09.0s), 200/200 VUs, 146 complete and 0 interrupted iterations
+shift_change_search   [  30% ] 200 VUs  09.0s/30s
+
+running (0m10.0s), 200/200 VUs, 163 complete and 0 interrupted iterations
+shift_change_search   [  33% ] 200 VUs  10.0s/30s
+
+running (0m11.0s), 200/200 VUs, 180 complete and 0 interrupted iterations
+shift_change_search   [  37% ] 200 VUs  11.0s/30s
+
+running (0m12.0s), 200/200 VUs, 197 complete and 0 interrupted iterations
+shift_change_search   [  40% ] 200 VUs  12.0s/30s
+
+running (0m13.0s), 200/200 VUs, 214 complete and 0 interrupted iterations
+shift_change_search   [  43% ] 200 VUs  13.0s/30s
+
+running (0m14.0s), 200/200 VUs, 233 complete and 0 interrupted iterations
+shift_change_search   [  47% ] 200 VUs  14.0s/30s
+
+running (0m15.0s), 200/200 VUs, 251 complete and 0 interrupted iterations
+shift_change_search   [  50% ] 200 VUs  15.0s/30s
+
+running (0m16.0s), 200/200 VUs, 269 complete and 0 interrupted iterations
+shift_change_search   [  53% ] 200 VUs  16.0s/30s
+
+running (0m17.0s), 200/200 VUs, 287 complete and 0 interrupted iterations
+shift_change_search   [  57% ] 200 VUs  17.0s/30s
+
+running (0m18.0s), 200/200 VUs, 298 complete and 0 interrupted iterations
+shift_change_search   [  60% ] 200 VUs  18.0s/30s
+
+running (0m19.0s), 200/200 VUs, 310 complete and 0 interrupted iterations
+shift_change_search   [  63% ] 200 VUs  19.0s/30s
+
+running (0m20.0s), 200/200 VUs, 324 complete and 0 interrupted iterations
+shift_change_search   [  67% ] 200 VUs  20.0s/30s
+
+running (0m21.0s), 200/200 VUs, 339 complete and 0 interrupted iterations
+shift_change_search   [  70% ] 200 VUs  21.0s/30s
+
+running (0m22.0s), 200/200 VUs, 354 complete and 0 interrupted iterations
+shift_change_search   [  73% ] 200 VUs  22.0s/30s
+
+running (0m23.0s), 200/200 VUs, 372 complete and 0 interrupted iterations
+shift_change_search   [  77% ] 200 VUs  23.0s/30s
+
+running (0m24.0s), 200/200 VUs, 391 complete and 0 interrupted iterations
+shift_change_search   [  80% ] 200 VUs  24.0s/30s
+
+running (0m25.0s), 200/200 VUs, 409 complete and 0 interrupted iterations
+shift_change_search   [  83% ] 200 VUs  25.0s/30s
+
+running (0m26.0s), 200/200 VUs, 428 complete and 0 interrupted iterations
+shift_change_search   [  87% ] 200 VUs  26.0s/30s
+
+running (0m27.0s), 200/200 VUs, 445 complete and 0 interrupted iterations
+shift_change_search   [  90% ] 200 VUs  27.0s/30s
+
+running (0m28.0s), 200/200 VUs, 464 complete and 0 interrupted iterations
+shift_change_search   [  93% ] 200 VUs  28.0s/30s
+
+running (0m29.0s), 200/200 VUs, 482 complete and 0 interrupted iterations
+shift_change_search   [  97% ] 200 VUs  29.0s/30s
+
+running (0m30.0s), 200/200 VUs, 497 complete and 0 interrupted iterations
+shift_change_search   [ 100% ] 200 VUs  30.0s/30s
+
+running (0m31.0s), 185/200 VUs, 512 complete and 0 interrupted iterations
+shift_change_search ↓ [ 100% ] 200 VUs  30s
+
+running (0m32.0s), 170/200 VUs, 527 complete and 0 interrupted iterations
+shift_change_search ↓ [ 100% ] 200 VUs  30s
+
+running (0m33.0s), 155/200 VUs, 542 complete and 0 interrupted iterations
+shift_change_search ↓ [ 100% ] 200 VUs  30s
+
+running (0m34.0s), 140/200 VUs, 557 complete and 0 interrupted iterations
+shift_change_search ↓ [ 100% ] 200 VUs  30s
+
+running (0m35.0s), 123/200 VUs, 574 complete and 0 interrupted iterations
+shift_change_search ↓ [ 100% ] 200 VUs  30s
+
+running (0m36.0s), 104/200 VUs, 593 complete and 0 interrupted iterations
+shift_change_search ↓ [ 100% ] 200 VUs  30s
+
+running (0m37.0s), 085/200 VUs, 612 complete and 0 interrupted iterations
+shift_change_search ↓ [ 100% ] 200 VUs  30s
+
+running (0m38.0s), 067/200 VUs, 630 complete and 0 interrupted iterations
+shift_change_search ↓ [ 100% ] 200 VUs  30s
+
+running (0m39.0s), 049/200 VUs, 648 complete and 0 interrupted iterations
+shift_change_search ↓ [ 100% ] 200 VUs  30s
+
+running (0m40.0s), 031/200 VUs, 666 complete and 0 interrupted iterations
+shift_change_search ↓ [ 100% ] 200 VUs  30s
+
+running (0m41.0s), 012/200 VUs, 685 complete and 0 interrupted iterations
+shift_change_search ↓ [ 100% ] 200 VUs  30s
+
+
+  █ THRESHOLDS 
+
+    http_req_duration
+    ✗ 'p(95)<300' p(95)=19.37s
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 697     16.708695/s
+    checks_succeeded...: 100.00% 697 out of 697
+    checks_failed......: 0.00%   0 out of 697
+
+    ✓ status is 200
+
+    HTTP
+    http_req_duration..............: avg=10.34s min=157.23ms med=11.84s max=23.66s p(90)=14.7s  p(95)=19.37s
+      { expected_response:true }...: avg=10.34s min=157.23ms med=11.84s max=23.66s p(90)=14.7s  p(95)=19.37s
+    http_req_failed................: 0.00%  0 out of 697
+    http_reqs......................: 697    16.708695/s
+
+    EXECUTION
+    iteration_duration.............: avg=10.35s min=158.63ms med=11.84s max=23.67s p(90)=14.71s p(95)=19.38s
+    iterations.....................: 697    16.708695/s
+    vus............................: 12     min=12       max=200
+    vus_max........................: 200    min=200      max=200
+
+    NETWORK
+    data_received..................: 2.5 GB 61 MB/s
+    data_sent......................: 73 kB  1.7 kB/s
+
+
+
+
+running (0m41.7s), 000/200 VUs, 697 complete and 0 interrupted iterations
+shift_change_search ✓ [ 100% ] 200 VUs  30s
+time="2026-08-11T18:17:46+03:00" level=error msg="thresholds on metrics 'http_req_duration' have been crossed"
