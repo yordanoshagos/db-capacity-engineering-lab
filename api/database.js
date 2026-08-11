@@ -19,12 +19,18 @@ const MYSQL_CONFIG = {
   password: process.env.MYSQL_PASSWORD || 'labpassword',
   database: process.env.MYSQL_DATABASE || 'capacity_lab',
 
-  // Keep the pool small so we don't overwhelm the database with connections.
+  // OPS-2202: pool of 2 serialises the whole API under surge while MySQL sits
+  // idle (Threads_running ≈ pool size). Size via Little's Law:
+  //   connections ≈ target_throughput × service_time
+  // For recent-patients, service_time ≈ 5–15ms. Targeting ~2k req/s headroom
+  // needs ~20–40 conns; 50 leaves margin without approaching max_connections.
+  // queueLimit: 0 = wait (latency rises under overload). For production, prefer
+  // a finite queueLimit + load shedding so bursts fail fast instead of melting.
   waitForConnections: true,
-  connectionLimit: 2,
+  connectionLimit: 50,
   queueLimit: 0,
   connectTimeout: 10_000,
-  maxIdle: 2,
+  maxIdle: 50,
   idleTimeout: 60_000,
   enableKeepAlive: true,
 };

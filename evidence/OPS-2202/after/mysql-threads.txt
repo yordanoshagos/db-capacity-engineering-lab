@@ -1,0 +1,5 @@
+mysql: [Warning] Using a password on the command line interface can be insecure.
+Variable_name	Value
+Threads_running	2
+Variable_name	Value
+Threads_connected	51

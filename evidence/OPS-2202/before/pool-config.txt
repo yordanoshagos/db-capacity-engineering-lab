@@ -1,0 +1,9 @@
+  waitForConnections: true,
+  connectionLimit: 2,
+  queueLimit: 0,
+  connectTimeout: 10_000,
+  maxIdle: 2,
+  idleTimeout: 60_000,
+  enableKeepAlive: true,
+};
+
