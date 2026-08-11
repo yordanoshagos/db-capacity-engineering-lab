@@ -1,0 +1,7 @@
+CONTAINER ID   NAME                CPU %     MEM USAGE / LIMIT     MEM %     NET I/O           BLOCK I/O         PIDS
+40ab2b71489e   capacity-api        0.47%     91.03MiB / 160MiB     56.89%    5.99GB / 7.73GB   0B / 0B           11
+f68430e267d0   grafana             0.73%     182.5MiB / 7.653GiB   2.33%     21.6MB / 139kB    0B / 121MB        36
+b9b6e6254d3f   prometheus          1.22%     55.55MiB / 7.653GiB   0.71%     2.63MB / 88.2kB   0B / 807kB        15
+9b4709dc3973   mongo-db            0.56%     86.59MiB / 7.653GiB   1.10%     16.7kB / 126B     0B / 2.54MB       30
+36f5ca760ddd   mysql-db            0.61%     488.4MiB / 7.653GiB   6.23%     48.7MB / 11.3GB   131kB / 547MB     88
+0032196a0175   complere-postgres   0.01%     55.32MiB / 7.653GiB   0.71%     14.5MB / 10.8MB   40.5MB / 1.66MB   7

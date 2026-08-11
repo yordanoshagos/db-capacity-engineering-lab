@@ -1,0 +1,33 @@
+18:21:15
+CONTAINER ID   NAME           CPU %     MEM USAGE / LIMIT   MEM %     NET I/O           BLOCK I/O   PIDS
+8966e4304cdd   capacity-api   0.59%     53.71MiB / 160MiB   33.57%    4.59GB / 5.85GB   0B / 0B     11
+18:21:26
+CONTAINER ID   NAME           CPU %     MEM USAGE / LIMIT   MEM %     NET I/O           BLOCK I/O   PIDS
+8966e4304cdd   capacity-api   0.67%     53.47MiB / 160MiB   33.42%    4.59GB / 5.85GB   0B / 0B     11
+18:21:38
+CONTAINER ID   NAME           CPU %     MEM USAGE / LIMIT   MEM %     NET I/O           BLOCK I/O   PIDS
+8966e4304cdd   capacity-api   0.56%     53.93MiB / 160MiB   33.70%    4.59GB / 5.85GB   0B / 0B     11
+18:21:49
+CONTAINER ID   NAME           CPU %     MEM USAGE / LIMIT   MEM %     NET I/O           BLOCK I/O   PIDS
+8966e4304cdd   capacity-api   0.66%     54.14MiB / 160MiB   33.84%    4.59GB / 5.85GB   0B / 0B     11
+18:22:00
+CONTAINER ID   NAME           CPU %     MEM USAGE / LIMIT   MEM %     NET I/O           BLOCK I/O   PIDS
+8966e4304cdd   capacity-api   1.63%     54.09MiB / 160MiB   33.81%    4.59GB / 5.85GB   0B / 0B     11
+18:22:11
+CONTAINER ID   NAME           CPU %     MEM USAGE / LIMIT   MEM %     NET I/O           BLOCK I/O   PIDS
+8966e4304cdd   capacity-api   0.60%     54.48MiB / 160MiB   34.05%    4.59GB / 5.85GB   0B / 0B     11
+18:22:22
+CONTAINER ID   NAME           CPU %     MEM USAGE / LIMIT   MEM %     NET I/O           BLOCK I/O   PIDS
+8966e4304cdd   capacity-api   0.82%     53.84MiB / 160MiB   33.65%    4.59GB / 5.85GB   0B / 0B     11
+18:22:33
+CONTAINER ID   NAME           CPU %     MEM USAGE / LIMIT   MEM %     NET I/O           BLOCK I/O   PIDS
+8966e4304cdd   capacity-api   0.67%     53.86MiB / 160MiB   33.66%    4.59GB / 5.85GB   0B / 0B     11
+18:22:44
+CONTAINER ID   NAME           CPU %     MEM USAGE / LIMIT   MEM %     NET I/O           BLOCK I/O   PIDS
+8966e4304cdd   capacity-api   0.86%     54.17MiB / 160MiB   33.85%    4.59GB / 5.85GB   0B / 0B     11
+18:22:57
+CONTAINER ID   NAME           CPU %     MEM USAGE / LIMIT   MEM %     NET I/O           BLOCK I/O   PIDS
+8966e4304cdd   capacity-api   0.68%     54.2MiB / 160MiB    33.88%    4.59GB / 5.85GB   0B / 0B     11
+18:23:08
+CONTAINER ID   NAME           CPU %     MEM USAGE / LIMIT   MEM %     NET I/O           BLOCK I/O   PIDS
+8966e4304cdd   capacity-api   0.60%     54.69MiB / 160MiB   34.18%    4.59GB / 5.85GB   0B / 0B     11

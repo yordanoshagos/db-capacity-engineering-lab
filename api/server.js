@@ -163,13 +163,30 @@ function notifyBedRegistry(_hospitalId) {
 }
 
 // ---------------------------------------------------------------------------
-// Full patient export for the analytics/ETL team.
+// Patient export for the analytics/ETL team (paginated).
+// OPS-2204: never materialise the full table in process memory — that is O(N)
+// heap and OOMs the 160MB container. Page with keyset pagination instead.
 // ---------------------------------------------------------------------------
-app.get('/api/patients/export', async (_req, res) => {
+app.get('/api/patients/export', async (req, res) => {
+  const rawLimit = Number(req.query.limit ?? 500);
+  const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 1000) : 500;
+  const afterId = Number(req.query.afterId ?? 0);
+
   try {
     const pool = getPool();
-    const [rows] = await pool.query('SELECT * FROM patients');
-    res.json({ count: rows.length, data: rows });
+    const [rows] = await pool.query(
+      'SELECT * FROM patients WHERE id > ? ORDER BY id ASC LIMIT ?',
+      [afterId, limit]
+    );
+    const nextAfterId = rows.length ? rows[rows.length - 1].id : null;
+    res.json({
+      count: rows.length,
+      limit,
+      afterId,
+      nextAfterId,
+      hasMore: rows.length === limit,
+      data: rows,
+    });
   } catch (err) {
     dbErrorsTotal.inc({ route: '/api/patients/export', code: err.code || 'UNKNOWN' });
     res.status(500).json({ error: err.code || 'ERROR', message: err.message });
