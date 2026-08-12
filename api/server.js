@@ -94,16 +94,24 @@ app.get('/api/patients/recent', async (_req, res) => {
 
 // ---------------------------------------------------------------------------
 // Patient lookup by last name
+// OPS-2201 follow-up: index alone is not enough — SELECT * of ~10k Smith rows
+// (incl. notes TEXT) keeps p95 multi-second under concurrency. Bound the
+// result and omit the heavy notes column so the search SLO (p95 < 300ms) holds.
 // ---------------------------------------------------------------------------
 app.get('/api/patients/search', async (req, res) => {
   const lastName = req.query.lastName || '';
+  const rawLimit = Number(req.query.limit ?? 50);
+  const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 100) : 50;
   try {
     const pool = getPool();
     const [rows] = await pool.query(
-      'SELECT * FROM patients WHERE last_name = ?',
-      [lastName]
+      `SELECT id, first_name, last_name, email, diagnosis, created_at
+       FROM patients
+       WHERE last_name = ?
+       LIMIT ?`,
+      [lastName, limit]
     );
-    res.json({ count: rows.length, lastName, data: rows });
+    res.json({ count: rows.length, lastName, limit, data: rows });
   } catch (err) {
     dbErrorsTotal.inc({ route: '/api/patients/search', code: err.code || 'UNKNOWN' });
     res.status(500).json({ error: err.code || 'ERROR', message: err.message });

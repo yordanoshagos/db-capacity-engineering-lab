@@ -126,25 +126,28 @@ Evidence: `evidence/00-baseline/`
 
 ### Fix & verify
 > The change you made (be specific):
-> `CREATE INDEX idx_patients_last_name ON patients (last_name);`
-> also added to `data-seed/seed.sh` so re-seeds keep it.
+> 1. `CREATE INDEX idx_patients_last_name ON patients (last_name);` (in `data-seed/seed.sh`)
+> 2. **Close the payload gap (mentor feedback):** stop `SELECT *` of all Smiths —
+>    omit `notes` TEXT and apply `LIMIT 50` (max 100) on `/api/patients/search`.
 >
 > Re-run evidence — new query behaviour:
 > ```
-> AFTER — EXPLAIN ANALYZE:
+> AFTER index — EXPLAIN ANALYZE:
 >   -> Index lookup on patients using idx_patients_last_name (last_name='Smith')
->      (actual time=0.03..17.7 rows=10000)
-> ```
-> After index + pool fix: RPS 16.7 → 114 (~6.8×). Successful searches work;
-> residual latency is payload/transfer under extreme concurrency, not the scan.
 >
-> New p95: still multi-second under 200 VUs (payload-bound)  
-> New RPS: 114  
-> Improvement factor: **~6.8× throughput**; plan cost rows 100k → 10k (**10×**)  
-> Trade-off: secondary index costs write amplification + disk on every INSERT/UPDATE
-> of `last_name` — correct price for this read path.
+> AFTER index + LIMIT/column trim (pool=50, 200 VUs) — evidence/OPS-2201/after-slo/:
+>   p95 = 158.61 ms  ✓ threshold p(95)<300
+>   RPS ≈ 1839
+>   http_req_failed = 0%
+>   response shape: 50 rows, no notes column
+> ```
+> New p95: **158.61 ms** (was 19.37 s)  
+> New RPS: **1839** (was 16.7)  
+> Improvement factor: **~110× RPS**; search SLO green  
+> Trade-off: index write cost; clients paginate for more matches instead of
+> dumping every Smith + clinical notes in one response.
 
-Evidence: `evidence/OPS-2201/before|after/`
+Evidence: `evidence/OPS-2201/before|after|after-slo/`
 
 ---
 
@@ -299,25 +302,34 @@ Evidence: `evidence/OPS-2203/before|after/`
 > ```
 > Code (before): const [rows] = await pool.query('SELECT * FROM patients');
 >
-> k6 before (50 VUs, 2m, timeout 120s):
->   http_req_failed = 100%
->   every request timed out at ~120s
->   RPS ≈ 0.42
->   capacity-api net I/O climbed to multi-GB while clients got 0 B back
->   (pool of 2 + full-table materialisation → requests never completed)
+> First capture (pool=2) — evidence/OPS-2204/before/:
+>   http_req_failed = 100% (client timeouts ~120s)
+>   RPS ≈ 0.42; RestartCount stayed 0
+>   pool=2 masked the OOM: only two exports could materialise at once, so the
+>   process hung more than it crashed. Failure observed ≠ memory mechanism.
+>
+> Re-run with pool already sized (connectionLimit=50) — evidence/OPS-2204/before-with-pool50/:
+>   restarts_before=0 → restarts_after=12
+>   docker_mem peaked at 152.3MiB / 160MiB then dropped to 0B/0B (cgroup kill/restart)
+>   first heap sample nodejs_heap_size_used_bytes ≈ 15.9 MB, then process died
+>     (metrics scrape failed while restarting)
+>   k6: 100% failed, ~32k attempts / 2m while the instance crash-looped
 > ```
 | Metric                          | Value |
 |---------------------------------|-------|
 | Approx. payload size per request| ~100k × ~341 B ≈ **34 MB** JSON-ish per full export |
-| Peak heap before crash          | full export path contended with tiny pool; clients saw timeouts |
-| Time-to-first-crash             | effective total failure within the 2m window (100% timeouts) |
-| Container restart count         | 0 in this capture (failure mode = hang/timeout under pool=2); cgroup still 160MB |
-| GC pause trend                  | N/A in this run — requests never finished |
+| Peak RSS before crash           | **152.3 MiB / 160 MiB** (pool=50 repro) |
+| Time-to-first-crash             | within ~10s of load start (mem 152→restart) |
+| Container restart count         | **0 → 12** in 2 minutes (pool=50 repro) |
+| GC / heap trend                 | heap scrape lost during crash-loop; RSS cliff is the OOM signal |
 
 > Paste the crash / exit log lines:
 > ```
-> k6: Request Failed ... request timeout
-> http_req_failed rate=100%
+> heap-series: 13:35:44 docker_mem=152.3MiB / 160MiB
+> heap-series: 13:35:50 docker_mem=69MiB / 160MiB  (restarting)
+> heap-series: 13:35:59 docker_mem=0B / 0B
+> restarts_after=12
+> k6: http_req_failed=100%
 > ```
 
 ### Root cause & mechanism
@@ -333,18 +345,19 @@ Evidence: `evidence/OPS-2203/before|after/`
 > `GET /api/patients/export?afterId=&limit=` (default limit 500, max 1000),
 > `WHERE id > ? ORDER BY id LIMIT ?`.
 >
-> Re-run evidence:
-> | | Before | After |
+> Re-run evidence (paginated, pool=50) — evidence/OPS-2204/after/:
+> | | Before (pool=50 unbounded) | After (paginated) |
 > |---|---|---|
-> | RPS | 0.42 | **316** |
-> | fail rate | 100% | **0%** |
-> | p95 | ~120s (timeout) | **227 ms** |
-> | mem during run | contended / unusable | ~94–97 MiB / 160 MiB stable |
-> | restarts | — | unchanged during after run |
+> | RPS / attempts | crash-loop (~260 failed/s) | **275** successful |
+> | fail rate | **100%** | **0%** |
+> | p95 | N/A (dying) | **~304 ms** |
+> | mem during run | **152 MiB → OOM → 12 restarts** | stable; **0 restarts** |
 >
 > Memory stays bounded because each response holds ≤1000 rows.
+> Principle learned: reproduce the mechanism the ticket names (OOM) with the
+> shared pool already sized — otherwise pool starvation masks the memory cliff.
 
-Evidence: `evidence/OPS-2204/before|after/`
+Evidence: `evidence/OPS-2204/before|before-with-pool50|after/`
 
 ---
 
@@ -365,6 +378,14 @@ Evidence: `evidence/OPS-2204/before|after/`
 > funnels through the pool. Measured `Threads_running` matched `connectionLimit`
 > while `max_connections=151` sat idle — highest leverage, lowest code risk.
 >
+> **Shared-pool coupling (named explicitly):** `connectionLimit: 2` was not only
+> OPS-2202's root cause — it *masked* the other mechanisms. With a tiny pool,
+> OPS-2201's fat payloads queued behind two slow scans (latency looked like
+> "DB slowness" / never hit a clean SLO test), and OPS-2204's unbounded export
+> hung instead of OOMing (only two materialisations at a time → RestartCount
+> stayed 0). Sizing the pool first unmasked the real payload and memory cliffs
+> so those tickets could be closed with measured proof.
+>
 > For each incident, what alert or dashboard would have caught it in production
 > *before* a user filed a ticket?
 > - **2201:** p95 on `/api/patients/search` + slow-query / rows_examined alert; EXPLAIN in CI for new predicates.
@@ -373,8 +394,12 @@ Evidence: `evidence/OPS-2204/before|after/`
 > - **2204:** container memory >70% of limit, restart count, export endpoint payload size / p95.
 
 ### Hypothesis graveyard (things evidence killed)
-- “Index alone will make OPS-2201 hit the 300ms SLO under 200 VUs” — **killed**.
-  EXPLAIN improved; pool + fat 10k-row payloads still dominated wall-clock time.
+- “Index alone will make OPS-2201 hit the 300ms SLO under 200 VUs” — **killed**, then **closed**:
+  EXPLAIN improved but payload remained; shipping `LIMIT` + dropping `notes` made
+  p95 **158.61 ms** (SLO green). A graveyard diagnosis is not a fix until the repro passes.
+- “OPS-2204 before with pool=2 proves the OOM” — **killed as incomplete**:
+  that run showed hang/timeout; the OOM (152 MiB → 12 restarts) only appeared
+  when we re-ran with pool=50.
 - “Finite queueLimit is always the better pool fix” — **nuanced**. It shed load
   (good backpressure) but spiked error rate under the lab’s 2000-VU script; we
   kept `queueLimit:0` for latency proof and documented fail-fast as the prod pattern.

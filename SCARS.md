@@ -7,11 +7,11 @@ Scar logs for the next engineer at 2am. One screen per wound.
 ## OPS-2201 — Patient search full-scans under shift-change load
 
 - **S — Symptom:** Concurrent last-name search p95 **19.4s** (200 VUs); “recent” path stayed the healthy contrast. Baseline recent p95 was **68ms**.
-- **C — Cause:** No secondary index on `patients.last_name` → InnoDB **full table scan** (~100k rows examined per request). Confirmed with `EXPLAIN ANALYZE` (`Table scan on patients`).
-- **A — Action:** `CREATE INDEX idx_patients_last_name ON patients (last_name);` persisted in `data-seed/seed.sh`.
-- **R — Result:** Plan became **index lookup** (100k → 10k rows examined, ~10× less work). After pool sizing, search RPS **16.7 → 114 (~6.8×)**. Residual multi-second p95 under 200 VUs is fat payloads (~10k Smiths/response), not the scan.
-- **Scar / lesson:** EXPLAIN before you ship predicates. An index can be “correct” and still not meet SLO if the pool or payload is the next bottleneck — measure both.
-- **Evidence:** `evidence/OPS-2201/`, `LAB_JOURNAL.md` §OPS-2201, seed index change.
+- **C — Cause:** No secondary index on `patients.last_name` → InnoDB **full table scan** (~100k rows examined per request). Confirmed with `EXPLAIN ANALYZE` (`Table scan on patients`). Secondary: unbounded `SELECT *` (incl. `notes`) returned ~10k fat rows so index alone still missed the 300ms SLO.
+- **A — Action:** (1) `CREATE INDEX idx_patients_last_name ON patients (last_name);` (2) `LIMIT 50` + drop `notes` from the search SELECT.
+- **R — Result:** Plan → index lookup; final after-slo p95 **19.4s → 158.61ms** (SLO green), RPS **16.7 → 1839**, 0% errors.
+- **Scar / lesson:** EXPLAIN before you ship predicates — and a diagnosis in the graveyard isn’t a fix until the reproduction **passes**. Index fixed access path; LIMIT/columns closed the payload cliff.
+- **Evidence:** `evidence/OPS-2201/`, especially `after-slo/`, `LAB_JOURNAL.md` §OPS-2201.
 
 **Alert that would have caught it:** p95(`/api/patients/search`) + slow query / rows_examined.
 
@@ -45,11 +45,11 @@ Scar logs for the next engineer at 2am. One screen per wound.
 
 ## OPS-2204 — Unbounded export materialises the table in heap
 
-- **S — Symptom:** Nightly-style export load: **100%** request timeouts (~120s), RPS **0.42**, multi-GB internal net I/O on `capacity-api`; export path unusable.
-- **C — Cause:** `SELECT * FROM patients` loaded entirely into Node (`O(N)` memory) against a **160MB** cgroup. ~100k × ~341 B ≈ **34MB** per full payload before overhead; concurrent callers cannot fit.
+- **S — Symptom:** With pool=2: **100%** timeouts (hang). With pool=50 mechanism repro: RSS **152 MiB/160 MiB**, **12 restarts** in 2 minutes.
+- **C — Cause:** `SELECT * FROM patients` loaded entirely into Node (`O(N)` memory). Tiny pool **masked** the OOM; sized pool revealed the cgroup kill.
 - **A — Action:** Keyset pagination: `WHERE id > ? ORDER BY id LIMIT ?` (default 500, max 1000) with `nextAfterId` / `hasMore`.
-- **R — Result:** fail **100% → 0%**; RPS **0.42 → 316**; p95 **~120s → 227ms**; memory stable **~95MB/160MB**.
-- **Scar / lesson:** Always bound result sets. A backup of “it works in Postman for one call” is not a production export API.
-- **Evidence:** `evidence/OPS-2204/`, export handler in `api/server.js`.
+- **R — Result:** fail **100% → 0%**; **0 restarts** on verify; p95 ~304ms under the same k6 script.
+- **Scar / lesson:** Always bound result sets. Reproduce the mechanism the ticket names — if pool starvation hides OOM, resize the pool and capture heap/RSS/RestartCount.
+- **Evidence:** `evidence/OPS-2204/before-with-pool50/`, `after/`, export handler in `api/server.js`.
 
 **Alert that would have caught it:** container memory >70% of limit, restart count, export p95 / response size.

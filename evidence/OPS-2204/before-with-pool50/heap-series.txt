@@ -1,0 +1,12 @@
+13:35:44 heap_used_bytes=15913928 docker_mem=152.3MiB / 160MiB
+13:35:50 heap_used_bytes= docker_mem=69MiB / 160MiB
+13:35:59 heap_used_bytes= docker_mem=0B / 0B
+13:36:07 heap_used_bytes= docker_mem=42.25MiB / 160MiB
+13:36:16 heap_used_bytes= docker_mem=1.363MiB / 160MiB
+13:36:27 heap_used_bytes= docker_mem=34.18MiB / 160MiB
+13:36:37 heap_used_bytes= docker_mem=116.5MiB / 160MiB
+13:36:45 heap_used_bytes= docker_mem=0B / 0B
+13:36:55 heap_used_bytes= docker_mem=0B / 0B
+13:37:03 heap_used_bytes= docker_mem=0B / 0B
+13:37:12 heap_used_bytes= docker_mem=25.76MiB / 160MiB
+13:37:37 heap_used_bytes= docker_mem=0B / 0B
