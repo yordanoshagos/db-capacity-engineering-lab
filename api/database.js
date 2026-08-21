@@ -43,6 +43,36 @@ const MONGO_DB_NAME = process.env.MONGO_DB || 'capacity_lab';
 // ---------------------------------------------------------------------------
 let pool;
 
+function applySecret(secret) {
+  MYSQL_CONFIG.host = secret.host;
+  MYSQL_CONFIG.port = Number(secret.port);
+  MYSQL_CONFIG.user = secret.username;
+  MYSQL_CONFIG.password = secret.password;
+  MYSQL_CONFIG.database = secret.dbname;
+  MYSQL_CONFIG.ssl = { rejectUnauthorized: false };
+  pool = undefined;
+}
+
+function poolStats() {
+  if (!pool || !pool.pool) {
+    return { inUse: 0, waiting: 0, limit: MYSQL_CONFIG.connectionLimit };
+  }
+  const inner = pool.pool;
+  const all = inner._allConnections ? inner._allConnections.length : 0;
+  const free = inner._freeConnections ? inner._freeConnections.length : 0;
+  const waiting = inner._connectionQueue ? inner._connectionQueue.length : 0;
+  return {
+    inUse: Math.max(0, all - free),
+    waiting,
+    limit: MYSQL_CONFIG.connectionLimit,
+  };
+}
+
+function isPoolSaturated() {
+  const s = poolStats();
+  return s.inUse >= s.limit && s.waiting > 0;
+}
+
 function getPool() {
   if (!pool) {
     pool = mysql.createPool(MYSQL_CONFIG);
@@ -87,6 +117,9 @@ module.exports = {
   MYSQL_CONFIG,
   MONGO_URI,
   MONGO_DB_NAME,
+  applySecret,
+  poolStats,
+  isPoolSaturated,
   getPool,
   getMongo,
   closeAll,

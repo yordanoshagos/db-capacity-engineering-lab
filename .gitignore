@@ -3,10 +3,15 @@ node_modules/
 npm-debug.log*
 yarn-error.log*
 
-# Environment
+# Environment — never commit tokens, Aiven passwords, or CA files
 .env
 .env.local
 *.local
+terraform.tfvars
+*.auto.tfvars
+secrets/*.pem
+secrets/*.crt
+*.pem
 
 # IDE
 .idea/
@@ -20,3 +25,20 @@ Thumbs.db
 # Logs / test output
 *.log
 load-tests/results/
+
+# Terraform / LocalStack — state is a credential store
+.terraform/
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+.tflocal/
+
+# A2 evidence logs are tracked
+!evidence/
+!evidence/**
+!evidence/**/*.log
+!evidence/**/*.txt
+!evidence/**/*.json
+evidence/**/*.mp4
+*.dump.sql

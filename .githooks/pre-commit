@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Pre-commit gitleaks gate (C5). Enable once per clone:
+#   git config core.hooksPath .githooks
+set -euo pipefail
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks protect --staged --redact --no-banner
+else
+  echo "WARN: gitleaks not on PATH; skip pre-commit scan" >&2
+fi

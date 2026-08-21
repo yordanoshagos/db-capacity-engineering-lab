@@ -109,4 +109,35 @@ given ticket is part of the exercise.
 docker compose down -v
 ```
 
-Good luck, on-call. 📟
+---
+
+## Assignment 2 — individual rehost
+
+This repo is **Yordanos's individual half**. Shared modules and the golden
+pipeline live in [akezasaloi/regional-health-platform](https://github.com/akezasaloi/regional-health-platform)
+and are consumed by **pinned commit** `d56f94d742cb4238a19a707f416a945423b74ae2`
+(`terraform/main.tf`, `.github/workflows/ci.yml`).
+
+Linux only (Codespace 4-core / 16 GB). Put Aiven + LocalStack values in `.env`
+(gitignored). Add the same names as **GitHub Actions secrets** on this repo.
+
+```bash
+git config core.hooksPath .githooks
+set -a && source .env && set +a
+make up
+make verify
+make down
+```
+
+### E2 — OIDC (`sub` must not be `repo:<org>/*`)
+
+See `docs/oidc-trust-policy.json`. If `sub` is `repo:<org>/*`, any repository
+in the organisation can assume the deploy role (a fork, a compromised
+Dependabot branch, a teammate's throwaway). Scope `sub` to
+`repo:yordanoshagos/db-capacity-engineering-lab:ref:refs/heads/main`.
+
+### Ordering
+
+Group `main` is already at `d56f94d…` (reusable `app_dir` / `terraform_dir`). This repo pins that SHA in `terraform/main.tf` and `.github/workflows/ci.yml`.
+
+See `FIDELITY.md` and `CONTRIBUTIONS.md`.

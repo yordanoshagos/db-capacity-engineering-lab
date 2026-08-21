@@ -1,0 +1,25 @@
+# Alertmanager. Slack webhook is injected at start from SLACK_WEBHOOK_URL
+# (never commit the URL). If unset, alerts still fire in Alertmanager UI :9093.
+route:
+  receiver: slack
+  group_by: ['alertname', 'incident']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 2h
+  routes:
+    - matchers:
+        - incident=~"OPS-2201|OPS-2202|OPS-2203|OPS-2204"
+      receiver: slack
+
+receivers:
+  - name: slack
+    slack_configs:
+      - send_resolved: true
+        api_url: 'PLACEHOLDER_SLACK_WEBHOOK'
+        title: '{{ .Status | toUpper }} {{ .CommonLabels.alertname }}'
+        text: >-
+          {{ range .Alerts }}
+          *{{ .Labels.incident }}* {{ .Annotations.summary }}
+          {{ .Annotations.description }}
+          {{ end }}
+        color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'

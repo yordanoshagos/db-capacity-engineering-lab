@@ -1,0 +1,121 @@
+{
+  "uid": "a2-incidents",
+  "title": "A2 — four incidents (2201–2204)",
+  "tags": ["a2", "rehost", "incidents"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5s",
+  "time": { "from": "now-15m", "to": "now" },
+  "templating": { "list": [] },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 10,
+      "title": "OPS-2201 — search p95 (SLO 300ms)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 0.3 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{route=\"/api/patients/search\"}[1m])) by (le))",
+          "legendFormat": "search p95"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "title": "OPS-2202 — MySQL pool in use / waiting / limit",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "targets": [
+        { "refId": "A", "expr": "mysql_pool_in_use", "legendFormat": "in use" },
+        { "refId": "B", "expr": "mysql_pool_waiting", "legendFormat": "waiting" },
+        { "refId": "C", "expr": "mysql_pool_limit", "legendFormat": "limit" }
+      ]
+    },
+    {
+      "id": 12,
+      "title": "OPS-2203 — lock-wait errors (ER_LOCK_WAIT_TIMEOUT)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(db_errors_total{code=\"ER_LOCK_WAIT_TIMEOUT\"}[1m]))",
+          "legendFormat": "lock-wait /s"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "title": "OPS-2204 — up (1 = alive, 0 = killed/OOM)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "short", "min": 0, "max": 1 }, "overrides": [] },
+      "targets": [
+        { "refId": "A", "expr": "up{job=\"capacity-api\"}", "legendFormat": "up" }
+      ]
+    },
+    {
+      "id": 14,
+      "title": "OPS-2204 — heap used vs RSS",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "fieldConfig": { "defaults": { "unit": "decbytes" }, "overrides": [] },
+      "targets": [
+        { "refId": "A", "expr": "nodejs_heap_size_used_bytes", "legendFormat": "heap used" },
+        { "refId": "B", "expr": "process_resident_memory_bytes", "legendFormat": "RSS" }
+      ]
+    },
+    {
+      "id": 15,
+      "title": "Firing alerts",
+      "type": "alertlist",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "options": {
+        "alertInstanceLabelFilter": "",
+        "alertName": "",
+        "dashboardAlerts": false,
+        "groupBy": [],
+        "groupMode": "default",
+        "maxItems": 20,
+        "sortOrder": 1,
+        "stateFilter": { "error": true, "firing": true, "noData": false, "normal": false, "pending": true }
+      }
+    }
+  ]
+}
