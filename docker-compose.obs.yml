@@ -1,0 +1,65 @@
+# Observability against the *rehosted* app on the Linux host (:3000).
+# After `make up` (or mock-EC2 docker run on :3000):
+#
+#   export SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...   # optional
+#   docker compose -f docker-compose.obs.yml up -d
+#
+# Grafana  :3001   Prometheus :9090   Alertmanager :9093
+services:
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: prometheus
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-lifecycle
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus-cloud.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alert-rules.yml:/etc/prometheus/alert-rules.yml:ro
+    depends_on:
+      - alertmanager
+    networks:
+      - obs-net
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: alertmanager
+    entrypoint: ["/bin/sh", "/alertmanager-start.sh"]
+    environment:
+      SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL:-}
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - ./monitoring/alertmanager-start.sh:/alertmanager-start.sh:ro
+    networks:
+      - obs-net
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: grafana
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+    volumes:
+      - grafana-obs:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    networks:
+      - obs-net
+
+networks:
+  obs-net:
+    driver: bridge
+
+volumes:
+  grafana-obs:

@@ -12,11 +12,15 @@
  *   GET  /api/patients/export        Full patient export for the analytics team
  *   GET  /api/audit/ping             Mongo audit-store health probe
  *   GET  /metrics                    Prometheus metrics
+ *   GET  /healthz                    liveness (process is up)
+ *   GET  /readyz                     503 if DB down, pool saturated, or secret failed
+ *   GET  /debug/secret-source        { arn, versionId } from Secrets Manager
  */
 
 const express = require('express');
 const client = require('prom-client');
-const { getPool, getMongo } = require('./database');
+const { getPool, getMongo, applySecret, isPoolSaturated, poolStats } = require('./database');
+const { loadDbCredentials, getSecretSource, secretLoadError } = require('./secrets');
 
 const app = express();
 app.use(express.json());
@@ -54,6 +58,29 @@ const dbErrorsTotal = new client.Counter({
   registers: [register],
 });
 
+const mysqlPoolInUse = new client.Gauge({
+  name: 'mysql_pool_in_use',
+  help: 'MySQL pool connections currently checked out',
+  registers: [register],
+});
+const mysqlPoolWaiting = new client.Gauge({
+  name: 'mysql_pool_waiting',
+  help: 'Callers waiting for a free MySQL pool connection',
+  registers: [register],
+});
+const mysqlPoolLimit = new client.Gauge({
+  name: 'mysql_pool_limit',
+  help: 'MySQL pool connectionLimit',
+  registers: [register],
+});
+
+setInterval(() => {
+  const s = poolStats();
+  mysqlPoolInUse.set(s.inUse);
+  mysqlPoolWaiting.set(s.waiting);
+  mysqlPoolLimit.set(s.limit);
+}, 1000).unref();
+
 // Per-request timing + counting middleware
 app.use((req, res, next) => {
   const end = httpRequestDuration.startTimer();
@@ -70,6 +97,31 @@ app.use((req, res, next) => {
 // Health & metrics
 // ---------------------------------------------------------------------------
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+app.get('/healthz', (_req, res) => res.json({ status: 'ok' }));
+
+app.get('/readyz', async (_req, res) => {
+  const src = getSecretSource();
+  const secretFailed = Boolean(secretLoadError())
+    || (process.env.DB_SECRET_ARN && !String(src.arn || '').startsWith('arn:aws:secretsmanager:'));
+  if (secretFailed) {
+    res.status(503).json({ status: 'not-ready', reason: 'secret-unresolved' });
+    return;
+  }
+  if (isPoolSaturated()) {
+    res.status(503).json({ status: 'not-ready', reason: 'pool-saturated', pool: poolStats() });
+    return;
+  }
+  try {
+    await getPool().query('SELECT 1');
+    res.json({ status: 'ready' });
+  } catch (err) {
+    res.status(503).json({ status: 'not-ready', reason: 'db-unreachable', error: err.message });
+  }
+});
+
+app.get('/debug/secret-source', (_req, res) => {
+  res.json(getSecretSource());
+});
 
 app.get('/metrics', async (_req, res) => {
   res.set('Content-Type', register.contentType);
@@ -215,9 +267,21 @@ app.get('/api/audit/ping', async (_req, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// Boot
+// Boot — resolve DB creds from Secrets Manager before listen (C3)
 // ---------------------------------------------------------------------------
-app.listen(PORT, () => {
+async function boot() {
+  const creds = await loadDbCredentials();
+  if (getSecretSource().arn !== 'env') {
+    applySecret(creds);
+  }
+  app.listen(PORT, () => {
+    // eslint-disable-next-line no-console
+    console.log(`capacity-api listening on :${PORT} (metrics at /metrics)`);
+  });
+}
+
+boot().catch((err) => {
   // eslint-disable-next-line no-console
-  console.log(`capacity-api listening on :${PORT} (metrics at /metrics)`);
+  console.error('boot failed', err);
+  process.exit(1);
 });

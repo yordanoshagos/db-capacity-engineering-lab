@@ -1,0 +1,42 @@
+groups:
+  - name: regional-health-incidents
+    rules:
+      - alert: OPS2201SearchLatency
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{route="/api/patients/search"}[2m])) by (le)) > 0.3
+        for: 1m
+        labels:
+          incident: OPS-2201
+          severity: warning
+        annotations:
+          summary: "OPS-2201: search p95 > 300ms"
+          description: "Shift-change lookup SLO is broken. Check last_name index and payload size."
+
+      - alert: OPS2202PoolSaturation
+        expr: mysql_pool_waiting > 0 and mysql_pool_in_use >= mysql_pool_limit
+        for: 30s
+        labels:
+          incident: OPS-2202
+          severity: warning
+        annotations:
+          summary: "OPS-2202: MySQL pool saturated while callers wait"
+          description: "API pool is full; MySQL may still be idle. Little's Law: L = λW."
+
+      - alert: OPS2203LockWait
+        expr: rate(db_errors_total{code="ER_LOCK_WAIT_TIMEOUT"}[2m]) > 0
+        for: 30s
+        labels:
+          incident: OPS-2203
+          severity: warning
+        annotations:
+          summary: "OPS-2203: InnoDB lock-wait timeouts on admit"
+          description: "Hospital row lock held too long. Check admit critical section."
+
+      - alert: OPS2204ProcessDown
+        expr: up{job="capacity-api"} == 0
+        for: 15s
+        labels:
+          incident: OPS-2204
+          severity: critical
+        annotations:
+          summary: "OPS-2204: capacity-api is down (OOM/restart)"
+          description: "Scrape target gone. docker kill / cgroup OOM is the cheap proof."
