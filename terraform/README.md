@@ -20,5 +20,5 @@ make down
 ```
 
 Pinned to `d56f94d742cb4238a19a707f416a945423b74ae2` (group `main`). If group
-main moves, bump `platform_ref` in `main.tf` and the `@sha` in
-`.github/workflows/ci.yml`.
+main moves, bump the `?ref=` SHA on both `module` sources in `main.tf` and the
+`@sha` in `.github/workflows/ci.yml`.

@@ -1,14 +1,12 @@
 # Composes group modules from akezasaloi/regional-health-platform at a pinned SHA.
 # No aws_db_instance (Hobby RDS 501 — MySQL is Aiven) and no aws_lb (ELBv2 501).
 # app_ami_id is the bare ami-<12hex>, not the docker tag localstack-ec2/app:ami-<12hex>.
-
-locals {
-  platform     = "git::https://github.com/akezasaloi/regional-health-platform.git"
-  platform_ref = "d56f94d742cb4238a19a707f416a945423b74ae2"
-}
+#
+# module.source must be a literal string — Terraform rejects ${local.*} here
+# ("Variables not allowed" / "value must be known") even though locals are not vars.
 
 module "data" {
-  source = "${local.platform}//terraform/modules/data?ref=${local.platform_ref}"
+  source = "git::https://github.com/akezasaloi/regional-health-platform.git//terraform/modules/data?ref=d56f94d742cb4238a19a707f416a945423b74ae2"
 
   db_host     = var.db_host
   db_port     = var.db_port
@@ -19,7 +17,7 @@ module "data" {
 }
 
 module "service" {
-  source = "${local.platform}//terraform/modules/service?ref=${local.platform_ref}"
+  source = "git::https://github.com/akezasaloi/regional-health-platform.git//terraform/modules/service?ref=d56f94d742cb4238a19a707f416a945423b74ae2"
 
   app_ami_id    = var.app_ami_id
   instance_type = var.instance_type
