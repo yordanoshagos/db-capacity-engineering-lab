@@ -1,0 +1,9 @@
+module.data.aws_secretsmanager_secret.db: Refreshing state... [id=arn:aws:secretsmanager:us-east-1:000000000000:secret:regional-health/db-swdmaZ]
+module.service.aws_security_group.app: Refreshing state... [id=sg-203ccb16fbccbe977]
+module.data.aws_secretsmanager_secret_version.db: Refreshing state... [id=arn:aws:secretsmanager:us-east-1:000000000000:secret:regional-health/db-swdmaZ|terraform-FbQKQXtrwBoiUdVRv6rLSzEdA9]
+module.service.aws_instance.app: Refreshing state... [id=i-3a9879d6e96a2c111]
+
+No changes. Your infrastructure matches the configuration.
+
+Terraform has compared your real infrastructure against your configuration
+and found no differences, so no changes are needed.

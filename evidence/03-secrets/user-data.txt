@@ -1,0 +1,176 @@
+# module.data.aws_secretsmanager_secret.db:
+resource "aws_secretsmanager_secret" "db" {
+    arn                            = "arn:aws:secretsmanager:us-east-1:000000000000:secret:regional-health/db-swdmaZ"
+    description                    = null
+    force_overwrite_replica_secret = false
+    id                             = "arn:aws:secretsmanager:us-east-1:000000000000:secret:regional-health/db-swdmaZ"
+    kms_key_id                     = null
+    name                           = "regional-health/db"
+    name_prefix                    = null
+    policy                         = null
+    recovery_window_in_days        = 30
+    region                         = "us-east-1"
+    tags_all                       = {}
+    type                           = null
+}
+
+# module.data.aws_secretsmanager_secret_version.db:
+resource "aws_secretsmanager_secret_version" "db" {
+    arn            = "arn:aws:secretsmanager:us-east-1:000000000000:secret:regional-health/db-swdmaZ"
+    id             = "arn:aws:secretsmanager:us-east-1:000000000000:secret:regional-health/db-swdmaZ|terraform-FbQKQXtrwBoiUdVRv6rLSzEdA9"
+    region         = "us-east-1"
+    secret_arn     = "arn:aws:secretsmanager:us-east-1:000000000000:secret:regional-health/db-swdmaZ"
+    secret_binary  = (sensitive value)
+    secret_id      = "arn:aws:secretsmanager:us-east-1:000000000000:secret:regional-health/db-swdmaZ"
+    secret_string  = (sensitive value)
+    version_id     = "terraform-FbQKQXtrwBoiUdVRv6rLSzEdA9"
+    version_stages = [
+        "AWSCURRENT",
+    ]
+}
+# module.service.aws_instance.app:
+resource "aws_instance" "app" {
+    ami                                  = "ami-03cf127a"
+    arn                                  = "arn:aws:ec2:us-east-1::instance/i-3a9879d6e96a2c111"
+    associate_public_ip_address          = true
+    availability_zone                    = "us-east-1a"
+    disable_api_stop                     = false
+    disable_api_termination              = false
+    ebs_optimized                        = false
+    force_destroy                        = false
+    get_password_data                    = false
+    hibernation                          = false
+    host_id                              = null
+    iam_instance_profile                 = null
+    id                                   = "i-3a9879d6e96a2c111"
+    instance_initiated_shutdown_behavior = "stop"
+    instance_lifecycle                   = null
+    instance_state                       = "running"
+    instance_type                        = "t3.small"
+    ipv6_address_count                   = 0
+    ipv6_addresses                       = []
+    key_name                             = null
+    monitoring                           = false
+    outpost_arn                          = null
+    password_data                        = null
+    placement_group                      = null
+    placement_group_id                   = null
+    placement_partition_number           = 0
+    primary_network_interface_id         = "eni-3f009f30f8d5f7666"
+    private_dns                          = "ip-10-206-56-0.ec2.internal"
+    private_ip                           = "10.206.56.0"
+    public_dns                           = "ec2-54-214-105-206.compute-1.amazonaws.com"
+    public_ip                            = "54.214.105.206"
+    region                               = "us-east-1"
+    secondary_private_ips                = []
+    security_groups                      = [
+        "capacity-api",
+    ]
+    source_dest_check                    = true
+    spot_instance_request_id             = null
+    subnet_id                            = "subnet-dadf26702ea6be0fa"
+    tags_all                             = {}
+    tenancy                              = "default"
+    user_data                            = <<-EOT
+        #!/bin/bash
+        set -euxo pipefail
+        export AWS_ENDPOINT_URL="http://localhost.localstack.cloud:4566"
+        export AWS_DEFAULT_REGION="us-east-1"
+        export DB_SECRET_ARN="arn:aws:secretsmanager:us-east-1:000000000000:secret:regional-health/db-swdmaZ"
+        export DB_HOST="mysql-8b528bc-regional-health.h.aivencloud.com"
+        export DB_PORT="10345"
+        docker run -d --restart=unless-stopped --memory=512m \
+          -e AWS_ENDPOINT_URL -e AWS_DEFAULT_REGION \
+          -e DB_SECRET_ARN -e DB_HOST -e DB_PORT \
+          -p 3000:3000 \
+          --name capacity-api \
+          ami-03cf127a
+    EOT
+    user_data_replace_on_change          = false
+    vpc_security_group_ids               = [
+        "sg-203ccb16fbccbe977",
+    ]
+
+    credit_specification {
+        cpu_credits = "standard"
+    }
+
+    metadata_options {
+        http_endpoint               = "enabled"
+        http_protocol_ipv6          = "disabled"
+        http_put_response_hop_limit = 1
+        http_tokens                 = "required"
+        instance_metadata_tags      = "disabled"
+    }
+
+    primary_network_interface {
+        delete_on_termination = false
+        network_interface_id  = "eni-3f009f30f8d5f7666"
+    }
+
+    root_block_device {
+        delete_on_termination = true
+        device_name           = "/dev/sda1"
+        encrypted             = true
+        iops                  = 0
+        kms_key_id            = "arn:aws:kms:us-east-1:000000000000:key/bf7285e3-c926-4038-9189-04e31fce3dda"
+        tags_all              = {}
+        throughput            = 0
+        volume_id             = "vol-31e82be22aecdba5a"
+        volume_size           = 8
+        volume_type           = "gp2"
+    }
+}
+
+# module.service.aws_security_group.app:
+resource "aws_security_group" "app" {
+    arn                    = "arn:aws:ec2:us-east-1:000000000000:security-group/sg-203ccb16fbccbe977"
+    description            = "Ingress for app port scoped to VPC CIDR."
+    egress                 = [
+        {
+            cidr_blocks      = [
+                "10.0.0.0/16",
+            ]
+            description      = "Outbound to VPC only"
+            from_port        = 0
+            ipv6_cidr_blocks = []
+            prefix_list_ids  = []
+            protocol         = "-1"
+            security_groups  = []
+            self             = false
+            to_port          = 0
+        },
+    ]
+    id                     = "sg-203ccb16fbccbe977"
+    ingress                = [
+        {
+            cidr_blocks      = [
+                "10.0.0.0/16",
+            ]
+            description      = "App port from VPC"
+            from_port        = 3000
+            ipv6_cidr_blocks = []
+            prefix_list_ids  = []
+            protocol         = "tcp"
+            security_groups  = []
+            self             = false
+            to_port          = 3000
+        },
+    ]
+    name                   = "capacity-api"
+    name_prefix            = null
+    owner_id               = "000000000000"
+    region                 = "us-east-1"
+    revoke_rules_on_delete = false
+    tags_all               = {}
+    vpc_id                 = "vpc-f9270f7e68f7bfdfd"
+}
+
+
+Outputs:
+
+app_url = "http://54.214.105.206:3000"
+db_endpoint = "mysql-8b528bc-regional-health.h.aivencloud.com"
+db_port = 10345
+instance_id = "i-3a9879d6e96a2c111"
+secret_arn = (sensitive value)

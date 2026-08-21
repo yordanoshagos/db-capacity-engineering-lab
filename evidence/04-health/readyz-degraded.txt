@@ -1,0 +1,18 @@
+# C4 readyz-degraded  2026-08-21T23:35:00Z
+## 1. healthy
+GET http://127.0.0.1:3000/healthz -> 200
+{"status":"ok"}
+GET http://127.0.0.1:3000/readyz  -> 200
+{"status":"ready"}
+GET http://127.0.0.1:3000/debug/secret-source -> {"arn":"arn:aws:secretsmanager:us-east-1:000000000000:secret:regional-health/db-swdmaZ","versionId":"terraform-FbQKQXtrwBoiUdVRv6rLSzEdA9"}
+
+## 2. break secret (wrong password in Secrets Manager) + restart app
+capacity-api
+GET http://127.0.0.1:3000/healthz -> 200  (liveness must stay 200)
+{"status":"ok"}
+GET http://127.0.0.1:3000/readyz  -> 503  (must be 503)
+{"status":"not-ready","reason":"db-unreachable","error":"Access denied for user 'avnadmin'@'4.240.18.224' (using password: YES)"}
+## 3. restore secret + restart
+capacity-api
+GET http://127.0.0.1:3000/readyz  -> 200  (must be 200)
+{"status":"ready"}

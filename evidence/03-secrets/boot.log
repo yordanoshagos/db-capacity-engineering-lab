@@ -1,0 +1,6 @@
+boot: resolved DB secret arn=arn:aws:secretsmanager:us-east-1:000000000000:secret:regional-health/db-swdmaZ version=terraform-FbQKQXtrwBoiUdVRv6rLSzEdA9
+capacity-api listening on :3000 (metrics at /metrics)
+boot: resolved DB secret arn=arn:aws:secretsmanager:us-east-1:000000000000:secret:regional-health/db-swdmaZ version=57fe4eac-5eb8-4b93-bc51-678ae7c737b9
+capacity-api listening on :3000 (metrics at /metrics)
+boot: resolved DB secret arn=arn:aws:secretsmanager:us-east-1:000000000000:secret:regional-health/db-swdmaZ version=b2b5b9f1-d8d1-4e85-98b1-776161c80bb0
+capacity-api listening on :3000 (metrics at /metrics)
