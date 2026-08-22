@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   ci:
-    uses: akezasaloi/regional-health-platform/.github/workflows/ci.yml@d56f94d742cb4238a19a707f416a945423b74ae2
+    uses: akezasaloi/regional-health-platform/.github/workflows/ci.yml@v1
     with:
       app_dir: api
       terraform_dir: terraform
