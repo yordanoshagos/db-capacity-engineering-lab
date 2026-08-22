@@ -5,8 +5,8 @@ Each: branch → insecure change → red PR → fix commit → green → merge.
 | Gate | Red PR | Fix | What it does NOT catch |
 |---|---|---|---|
 | gitleaks | [#2](https://github.com/yordanoshagos/db-capacity-engineering-lab/pull/2) (leak still in history) | [#3](https://github.com/yordanoshagos/db-capacity-engineering-lab/pull/3) allowlist `6fbfe1c` | Secrets below entropy/rule threshold; credentials that never enter git (state file, chat). History needs an allowlist or rewrite — deleting the file is not enough. |
-| trivy config | [#4](https://github.com/yordanoshagos/db-capacity-engineering-lab/pull/4) AWS-0107 HIGH | _pending — remove `c5-open-sg.tf`_ | Runtime SG drift; LocalStack ignoring custom SGs. |
-| zizmor | _link_ | _sha_ | A malicious commit already at a pinned SHA; compromised maintainer. |
+| trivy config | [#4](https://github.com/yordanoshagos/db-capacity-engineering-lab/pull/4) AWS-0107 HIGH | [#4](https://github.com/yordanoshagos/db-capacity-engineering-lab/pull/4) removed `c5-open-sg.tf` | Runtime SG drift; LocalStack ignoring custom SGs. |
+| zizmor | [#5](https://github.com/yordanoshagos/db-capacity-engineering-lab/pull/5) `unpinned-uses` | _pending — delete `c5-zizmor-bait.yml`_ | A malicious commit already at a pinned SHA; compromised maintainer. |
 
 ## Trivy red (PR #4)
 
@@ -15,3 +15,12 @@ Each: branch → insecure change → red PR → fix commit → green → merge.
 - `pr-4-trivy-config-red.png` — PR checks: trivy-config failing
 - `pr-4-trivy-job.png` — Actions job list (`trivy config .` on `terraform/`)
 - `pr-4-trivy-aws-0107.png` — AWS-0107 snippet at `cidr_blocks = ["0.0.0.0/0"]`
+
+## Zizmor red (PR #5)
+
+Unpinning the reusable workflow `@v1` did **not** run jobs (no `v1` tag on the group repo). The red check is `c5-zizmor-bait.yml` with `uses: actions/checkout@v4`.
+
+Finding: **unpinned-uses** (high) — action not pinned to a 40-char SHA. gitleaks and trivy-config stayed green.
+
+- `pr-5-zizmor-red.png` — PR checks: zizmor failing
+- `pr-5-zizmor-unpinned-uses.png` — zizmor log, `unpinned-uses` on `actions/checkout@v4`
