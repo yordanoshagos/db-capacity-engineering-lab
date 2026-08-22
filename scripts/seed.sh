@@ -103,21 +103,35 @@ cleanup() {
 trap cleanup EXIT
 
 echo ">> starting throwaway mysql:8.0 to generate a mysqldump (ROW_COUNT=${ROW_COUNT})"
-docker run --rm -d --name "${SRC_NAME}" \
+# Do not pass --default-authentication-plugin: current mysql:8.0 images reject it
+# and the container exits. Do not mysqladmin ping -p during first-boot: the
+# entrypoint has not set the root password yet, so CI times out on a live init.
+docker run -d --name "${SRC_NAME}" \
   -e MYSQL_ROOT_PASSWORD=labpassword \
   -e MYSQL_DATABASE=capacity_lab \
-  mysql:8.0 \
-  --default-authentication-plugin=mysql_native_password >/dev/null
+  mysql:8.0 >/dev/null
 
 echo ">> waiting for throwaway MySQL ..."
-for _ in $(seq 1 60); do
-  if docker exec "${SRC_NAME}" mysqladmin ping -plabpassword --silent >/dev/null 2>&1; then
+ready=0
+for i in $(seq 1 90); do
+  if ! docker inspect -f '{{.State.Running}}' "${SRC_NAME}" 2>/dev/null | grep -qx true; then
+    echo "FAIL: throwaway MySQL container is not running"
+    docker ps -a --filter "name=${SRC_NAME}" || true
+    docker logs "${SRC_NAME}" 2>&1 | tail -40 || true
+    exit 1
+  fi
+  if docker exec "${SRC_NAME}" mysql -uroot -plabpassword --connect-timeout=2 -e "SELECT 1" >/dev/null 2>&1; then
+    ready=1
     break
   fi
-  sleep 2
+  echo "   ...still initialising (${i}/90)"
+  sleep 3
 done
-docker exec "${SRC_NAME}" mysqladmin ping -plabpassword --silent >/dev/null \
-  || { echo "FAIL: throwaway MySQL never became ready"; exit 1; }
+if [[ "${ready}" -ne 1 ]]; then
+  echo "FAIL: throwaway MySQL never became ready"
+  docker logs "${SRC_NAME}" 2>&1 | tail -80 || true
+  exit 1
+fi
 
 echo ">> loading schema + ${ROW_COUNT} patients into throwaway MySQL"
 docker exec -e MYSQL_HOST=127.0.0.1 \
